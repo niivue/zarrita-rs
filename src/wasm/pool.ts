@@ -51,6 +51,7 @@ type Job = {
   // biome-ignore lint/suspicious/noExplicitAny: decode and decodeInto share the job table
   resolve: (r: any) => void
   reject: (e: unknown) => void
+  worker: PoolWorker
 }
 
 interface PortLike {
@@ -90,7 +91,13 @@ export function configureWasm(opts: WasmOptions): void {
     mainDecoder = undefined
     terminateWorkers()
   }
-  if (opts.workerUrl !== undefined) config.workerUrl = opts.workerUrl
+  if (
+    opts.workerUrl !== undefined &&
+    String(opts.workerUrl) !== String(config.workerUrl)
+  ) {
+    config.workerUrl = opts.workerUrl
+    terminateWorkers()
+  }
   if (opts.enabled !== undefined) config.enabled = opts.enabled
   if (opts.sharedOutput !== undefined) config.sharedOutput = opts.sharedOutput
   if (opts.gzip !== undefined) config.gzip = opts.gzip
@@ -231,6 +238,12 @@ function terminateWorkers() {
   pool = undefined
   p?.then((ws) => {
     for (const w of ws) w.port.terminate()
+    // A terminated worker never answers, so fail its jobs instead of hanging.
+    for (const [id, job] of jobs) {
+      if (!ws.includes(job.worker)) continue
+      jobs.delete(id)
+      job.reject(new Error('zarrita-rs: decode workers were terminated'))
+    }
   }).catch(() => {})
 }
 
@@ -262,19 +275,11 @@ export async function wasmDecode(
   if (decodedSize < config.minWorkerBytes || !canUseWorkers()) {
     return (await getMainDecoder()).decode(spec, bytes)
   }
-  const workers = await getPool()
-  let w = workers[0]
-  for (const c of workers) if (c.inflight < w.inflight) w = c
-  // Copy so the caller's buffer (which a cache may hold) is never detached.
-  const copy = ownCopy(bytes)
-  const id = nextId++
-  if (w.inflight++ === 0) w.port.ref?.() // busy workers keep Node alive until done
-  return new Promise((resolve, reject) => {
-    jobs.set(id, { resolve, reject })
-    w.port.postMessage({ type: 'decode', id, spec, bytes: copy.buffer }, [
-      copy.buffer,
-    ])
-  })
+  return runOnPool(
+    (id, buf) => ({ type: 'decode', id, spec, bytes: buf }),
+    bytes,
+    () => wasmDecode(spec, bytes, decodedSize),
+  )
 }
 
 /**
@@ -295,18 +300,33 @@ export async function wasmDecodeInto(
     ;(await getMainDecoder()).decodeInto(spec, bytes, target)
     return
   }
-  const workers = await getPool()
+  return runOnPool(
+    (id, buf) => ({ type: 'decodeInto', id, spec, bytes: buf, target }),
+    bytes,
+    () => wasmDecodeInto(spec, bytes, decodedSize, target),
+  )
+}
+
+/** Send one job to the least busy worker and wait for its answer. */
+async function runOnPool<T>(
+  message: (id: number, bytes: ArrayBuffer) => object,
+  bytes: Uint8Array,
+  retry: () => Promise<T>,
+): Promise<T> {
+  const p = getPool()
+  const workers = await p
+  // The pool was replaced (configureWasm) while it started: start over under
+  // the new settings, which may not use workers at all.
+  if (p !== pool) return retry()
   let w = workers[0]
   for (const c of workers) if (c.inflight < w.inflight) w = c
+  // Copy so the caller's buffer (which a cache may hold) is never detached.
   const copy = ownCopy(bytes)
   const id = nextId++
-  if (w.inflight++ === 0) w.port.ref?.()
+  if (w.inflight++ === 0) w.port.ref?.() // busy workers keep Node alive until done
   return new Promise((resolve, reject) => {
-    jobs.set(id, { resolve, reject })
-    w.port.postMessage(
-      { type: 'decodeInto', id, spec, bytes: copy.buffer, target },
-      [copy.buffer],
-    )
+    jobs.set(id, { resolve, reject, worker: w })
+    w.port.postMessage(message(id, copy.buffer), [copy.buffer])
   })
 }
 

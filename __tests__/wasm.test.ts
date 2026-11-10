@@ -245,6 +245,37 @@ describe('wasm decode path', () => {
     await expect(zarr.get(arr)).resolves.toBeDefined()
   })
 
+  it('fails reads in flight when the worker pool is reconfigured', async () => {
+    const store = new FileSystemStore(roots[1])
+    const arr = await zarr.open.v3(
+      zarr.root(store).resolve('3d.chunked.compressed.sharded.i2'),
+      { kind: 'array' },
+    )
+    const silent = new URL('./silent-worker.js', import.meta.url)
+    const real = new URL('../src/wasm/worker.js', import.meta.url)
+    const settled = (p: Promise<unknown>) =>
+      Promise.race([
+        p.then(
+          () => 'ok',
+          (e: Error) => e.message,
+        ),
+        new Promise((r) => setTimeout(() => r('hung'), 2000)),
+      ])
+    const terminated = 'zarrita-rs: decode workers were terminated'
+    zarr.configureWasm({ enabled: true, minWorkerBytes: 0, gzip: 'wasm' })
+    // Each change stops workers that hold jobs; those reads must fail, not hang.
+    for (const change of [{ workers: 3 }, { workerUrl: real }]) {
+      zarr.terminateWasmWorkers()
+      zarr.configureWasm({ workers: 2, workerUrl: silent })
+      const read = zarr.get(arr)
+      await new Promise((r) => setTimeout(r, 200)) // the job reaches a worker
+      zarr.configureWasm(change)
+      expect(await settled(read)).toBe(terminated)
+    }
+    // The new pool, on the real worker, decodes again.
+    await expect(zarr.get(arr)).resolves.toBeDefined()
+  })
+
   it('decodes gzip natively unless the wasm module is already loaded', async () => {
     const store = new FileSystemStore(roots[1])
     const open = (name: string) =>

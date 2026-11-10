@@ -98,14 +98,14 @@ lazily imported chunk, about 220 KB gzip), there is no worker pool, the code
 never refers to its own URL, and there is no numcodecs fallback. blosc and zstd
 stages that cannot take the whole-pipeline fast path (compressed string arrays,
 sharding indexes) still decode in wasm; writing blosc/zstd and standalone lz4
-are not available. `pnpm test:dist` checks both entries against zarrita.js.
+are not available. `bunx nx test zarrita-rs` checks both built entries against zarrita.js.
 
 ## Install
 
-Until it is published to npm, install the packed tarball:
+Release candidates are published from niivue/mono under the `next` dist-tag:
 
 ```sh
-npm install /path/to/niivue-zarrita-rs-0.1.0.tgz
+npm install @niivue/zarrita-rs@next
 ```
 
 ## Bundlers
@@ -128,16 +128,20 @@ and `wasmUrl` to `configureWasm`.
 
 ## Building
 
+From the repository root:
+
 ```sh
-pnpm install
-pnpm run build:wasm   # needs the wasm32-unknown-unknown Rust target and clang (for zstd)
-pnpm run build
-pnpm test             # zarrita.js's own test suite plus wasm-path tests
+bun install
+bunx nx build:wasm zarrita-rs  # needs the wasm32-unknown-unknown Rust target and clang (for zstd)
+bunx nx build zarrita-rs       # packages the committed src/wasm/zarrita.wasm
+bunx nx test zarrita-rs        # zarrita.js's own test suite, wasm-path tests, built-entry check
+bunx nx test:rust zarrita-rs
+bunx nx lint:rust zarrita-rs
 ```
 
 ## Status
 
-- All 764 zarrita.js 0.7.5 tests pass, plus 9 wasm-path tests (773 total).
+- All 764 zarrita.js 0.7.5 tests pass, plus 10 wasm-path tests (774 total).
 - Every fixture array, plus about 300 random slice/step/integer selections,
   reads identically to zarrita.js in all modes (main thread, workers, shared
   output on main thread and in workers).
@@ -155,10 +159,11 @@ pnpm test             # zarrita.js's own test suite plus wasm-path tests
 
 ## Trying it on your own data
 
-`bench/js/browser` has a comparison page that reads any CORS-enabled Zarr URL
-with zarrita.js, zarrita-rs and zarrita-rs with shared output:
+The `apps/zarrita-compare` app has a page that reads any CORS-enabled Zarr URL
+with zarrita.js, zarrita-rs and zarrita-rs with shared output, plus a Node and
+native Rust benchmark (see its README):
 
 ```sh
-cd bench/js && npm install && cd browser && node build.mjs && node serve.mjs
-# open http://localhost:8080/wasm/compare.html
+bunx nx dev zarrita-compare
+# open http://localhost:8093/
 ```
