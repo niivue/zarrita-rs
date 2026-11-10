@@ -11,3 +11,4 @@ export RUSTFLAGS="-C target-feature=+simd128,+bulk-memory --remap-path-prefix=$s
 export CFLAGS_wasm32_unknown_unknown="-msimd128 -mbulk-memory -O3 -ffile-prefix-map=$cargo_home=/cargo -ffile-prefix-map=$PWD=/build"
 cargo build -p zarrita-rs --target wasm32-unknown-unknown --profile wasm
 cp target/wasm32-unknown-unknown/wasm/zarrita_rs.wasm packages/zarrita-rs/src/wasm/zarrita.wasm
+node packages/zarrita-rs/scripts/wasm-fingerprint.mjs --write

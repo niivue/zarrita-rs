@@ -5,17 +5,26 @@
   "targets": {
     "build:wasm": {
       "command": "bun run build:wasm",
-      "options": { "cwd": "{projectRoot}" },
+      "options": {
+        "cwd": "{projectRoot}"
+      },
       "inputs": [
         "{workspaceRoot}/Cargo.toml",
         "{workspaceRoot}/Cargo.lock",
-        "{projectRoot}/crates/**/*"
+        "{workspaceRoot}/rust-toolchain.toml",
+        "{projectRoot}/crates/**/*",
+        "{projectRoot}/scripts/build-wasm.sh"
       ],
-      "outputs": ["{projectRoot}/src/wasm/zarrita.wasm"]
+      "outputs": [
+        "{projectRoot}/src/wasm/zarrita.wasm",
+        "{projectRoot}/src/wasm/zarrita.wasm.inputs"
+      ]
     },
     "build": {
       "command": "bun run build",
-      "options": { "cwd": "{projectRoot}" },
+      "options": {
+        "cwd": "{projectRoot}"
+      },
       "inputs": [
         "typescript",
         "{projectRoot}/src/**/*",
@@ -25,7 +34,9 @@
     },
     "test": {
       "command": "bunx vitest run && bun run test:dist",
-      "options": { "cwd": "{projectRoot}" },
+      "options": {
+        "cwd": "{projectRoot}"
+      },
       "dependsOn": ["build"],
       "inputs": [
         "typescript",
@@ -38,22 +49,39 @@
       "inputs": [
         "{workspaceRoot}/Cargo.toml",
         "{workspaceRoot}/Cargo.lock",
+        "{workspaceRoot}/rust-toolchain.toml",
         "{projectRoot}/crates/**/*",
+        "{projectRoot}/scripts/build-wasm.sh",
         "{projectRoot}/fixtures/**/*"
       ]
     },
     "lint:rust": {
       "command": "cargo fmt --check -p zarrita -p zarrita-storage -p zarrita-rs && cargo clippy -p zarrita -p zarrita-storage -p zarrita-rs -- -D warnings",
-      "inputs": ["{workspaceRoot}/Cargo.toml", "{projectRoot}/crates/**/*"]
+      "inputs": [
+        "{workspaceRoot}/Cargo.toml",
+        "{workspaceRoot}/rust-toolchain.toml",
+        "{projectRoot}/crates/**/*"
+      ]
     },
     "typecheck": {
       "command": "bunx tsc --noEmit",
-      "options": { "cwd": "{projectRoot}" },
+      "options": {
+        "cwd": "{projectRoot}"
+      },
       "inputs": ["typescript"]
     },
     "lint": {
-      "command": "bunx biome check {projectRoot}",
-      "inputs": ["lintable"]
+      "command": "bunx biome check {projectRoot} && node {projectRoot}/scripts/wasm-fingerprint.mjs --check",
+      "inputs": [
+        "lintable",
+        "{workspaceRoot}/Cargo.toml",
+        "{workspaceRoot}/Cargo.lock",
+        "{workspaceRoot}/rust-toolchain.toml",
+        "{projectRoot}/crates/**/*",
+        "{projectRoot}/scripts/build-wasm.sh",
+        "{projectRoot}/src/wasm/zarrita.wasm",
+        "{projectRoot}/src/wasm/zarrita.wasm.inputs"
+      ]
     },
     "format": {
       "command": "bunx biome format {projectRoot} --write",

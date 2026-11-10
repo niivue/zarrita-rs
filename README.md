@@ -139,6 +139,13 @@ bunx nx test:rust zarrita-rs
 bunx nx lint:rust zarrita-rs
 ```
 
+`src/wasm/zarrita.wasm` is committed, so the JavaScript build needs no Rust
+toolchain. `build:wasm` also writes `src/wasm/zarrita.wasm.inputs`, a fingerprint
+of the Rust sources and the wasm; commit both files together. The `lint` target
+fails when the Rust sources changed without a rebuild. The wasm is not
+byte-identical across build hosts, so CI (`.github/workflows/rust.yml`) builds it
+from source and runs the tests against that build rather than diffing it.
+
 ## Status
 
 - All 764 zarrita.js 0.7.5 tests pass, plus 10 wasm-path tests (774 total).

@@ -1,0 +1,70 @@
+name: Rust
+
+# zarrita-rs's Rust crates: fmt, clippy and tests, then a wasm build from
+# source with the JavaScript tests run against it. The committed zarrita.wasm
+# is not byte-reproducible across build hosts, so it is not diffed here; the
+# PR gate's lint target checks its source fingerprint instead
+# (packages/zarrita-rs/scripts/wasm-fingerprint.mjs).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - packages/zarrita-rs/**
+      - apps/zarrita-compare/bench/rust/**
+      - .github/workflows/rust.yml
+  pull_request:
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - packages/zarrita-rs/**
+      - apps/zarrita-compare/bench/rust/**
+      - .github/workflows/rust.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust (zarrita-rs)
+    runs-on: ubuntu-latest
+    env:
+      NX_DAEMON: "false"
+      # zstd's C sources need a clang that targets wasm32.
+      CC_wasm32_unknown_unknown: clang-20
+      AR_wasm32_unknown_unknown: llvm-ar-20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installs the toolchain, target and components pinned in rust-toolchain.toml.
+      - name: Rust toolchain
+        run: rustup toolchain install
+
+      - name: LLVM 20
+        run: wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s 20
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+
+      - run: bun install --frozen-lockfile
+
+      - name: Rust fmt and clippy
+        run: bunx nx run zarrita-rs:lint:rust --skip-nx-cache
+
+      - name: Rust tests
+        run: bunx nx run zarrita-rs:test:rust --skip-nx-cache
+
+      - name: Build the wasm module from source
+        run: bunx nx run zarrita-rs:build:wasm --skip-nx-cache
+
+      - name: JavaScript tests against the fresh build
+        run: bunx nx run zarrita-rs:test --skip-nx-cache
