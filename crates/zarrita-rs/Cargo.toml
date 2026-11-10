@@ -1,5 +1,5 @@
 [package]
-name = "zarrita-wasm"
+name = "zarrita-rs"
 description = "WebAssembly decode core for the zarrita-rs npm package"
 version.workspace = true
 edition.workspace = true

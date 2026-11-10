@@ -1,4 +1,4 @@
-// Thin wrapper over the zarrita-rs decode core (crates/zarrita-wasm).
+// Thin wrapper over the zarrita-rs decode core (crates/zarrita-rs).
 // Plain JS (no TypeScript) so the same file runs on the main thread and inside
 // workers, from src/ or dist/, in browsers and in Node.
 

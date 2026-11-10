@@ -34,7 +34,7 @@
       ]
     },
     "test:rust": {
-      "command": "cargo test -p zarrita -p zarrita-storage -p zarrita-wasm",
+      "command": "cargo test -p zarrita -p zarrita-storage -p zarrita-rs",
       "inputs": [
         "{workspaceRoot}/Cargo.toml",
         "{workspaceRoot}/Cargo.lock",
@@ -43,7 +43,7 @@
       ]
     },
     "lint:rust": {
-      "command": "cargo fmt --check -p zarrita -p zarrita-storage -p zarrita-wasm && cargo clippy -p zarrita -p zarrita-storage -p zarrita-wasm -- -D warnings",
+      "command": "cargo fmt --check -p zarrita -p zarrita-storage -p zarrita-rs && cargo clippy -p zarrita -p zarrita-storage -p zarrita-rs -- -D warnings",
       "inputs": ["{workspaceRoot}/Cargo.toml", "{projectRoot}/crates/**/*"]
     },
     "typecheck": {

@@ -34,7 +34,7 @@ lz4_flex = { version = "0.11", default-features = false, features = ["std", "saf
 codegen-units = 1
 lto = "thin"
 
-# The npm package's wasm build: `cargo build -p zarrita-wasm --release --target wasm32-unknown-unknown --profile wasm`
+# The npm package's wasm build: `cargo build -p zarrita-rs --release --target wasm32-unknown-unknown --profile wasm`
 [profile.wasm]
 inherits = "release"
 opt-level = 3

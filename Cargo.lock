@@ -1518,6 +1518,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "zarrita-rs"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "serde_json",
+ "zarrita",
+]
+
+[[package]]
 name = "zarrita-storage"
 version = "0.1.0"
 dependencies = [
@@ -1526,15 +1535,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "url",
-]
-
-[[package]]
-name = "zarrita-wasm"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "serde_json",
- "zarrita",
 ]
 
 [[package]]
