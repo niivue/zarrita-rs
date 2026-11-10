@@ -192,7 +192,12 @@ function onMessage(
   else job.reject(new WasmDecodeError(msg.error ?? 'unknown error'))
 }
 
-async function spawn(module: WebAssembly.Module): Promise<PoolWorker> {
+async function spawn(
+  module: WebAssembly.Module,
+  owner: { pool?: Promise<PoolWorker[]> },
+): Promise<PoolWorker> {
+  // A crashed worker fails only its own pool, not one that replaced it.
+  const fail = (e: unknown) => owner.pool && stopPool(owner.pool, e)
   const url = config.workerUrl ?? defaultWorkerUrl()
   if (!url) throw new Error('zarrita-rs: no worker script in this build')
   let w: PoolWorker
@@ -202,47 +207,60 @@ async function spawn(module: WebAssembly.Module): Promise<PoolWorker> {
     const nw = new Worker(url)
     w = { port: nw, inflight: 0 }
     nw.on('message', (m: Parameters<typeof onMessage>[1]) => onMessage(w, m))
-    nw.on('error', (e: unknown) => failAll(e))
+    nw.on('error', fail)
     nw.unref() // after the listeners, which would otherwise re-ref it
   } else {
     const bw = new Worker(url, { type: 'module' })
     w = { port: bw, inflight: 0 }
     bw.onmessage = (e) => onMessage(w, e.data)
-    bw.onerror = (e) => failAll(e)
+    bw.onerror = fail
   }
   w.port.postMessage({ type: 'init', module })
   return w
 }
 
-function failAll(e: unknown) {
-  for (const job of jobs.values()) job.reject(e)
-  jobs.clear()
-  terminateWorkers()
-}
-
 function getPool(): Promise<PoolWorker[]> {
   if (!pool) {
     const n = config.workers
-    pool = loadModule().then((m) =>
-      Promise.all(Array.from({ length: n }, () => spawn(m))),
-    )
-    pool.catch(() => {
-      pool = undefined
+    const owner: { pool?: Promise<PoolWorker[]> } = {}
+    const p = loadModule().then(async (m) => {
+      const spawned = await Promise.allSettled(
+        Array.from({ length: n }, () => spawn(m, owner)),
+      )
+      const ws = spawned.flatMap((r) =>
+        r.status === 'fulfilled' ? [r.value] : [],
+      )
+      const failed = spawned.find((r) => r.status === 'rejected')
+      if (failed) {
+        for (const w of ws) w.port.terminate()
+        throw failed.reason
+      }
+      return ws
+    })
+    owner.pool = p
+    pool = p
+    p.catch(() => {
+      if (pool === p) pool = undefined
     })
   }
   return pool
 }
 
 function terminateWorkers() {
-  const p = pool
-  pool = undefined
-  p?.then((ws) => {
+  if (pool)
+    stopPool(pool, new Error('zarrita-rs: decode workers were terminated'))
+}
+
+/** Stop the workers of pool `p` and fail their jobs with `reason`. */
+function stopPool(p: Promise<PoolWorker[]>, reason: unknown) {
+  if (pool === p) pool = undefined
+  p.then((ws) => {
     for (const w of ws) w.port.terminate()
     // A terminated worker never answers, so fail its jobs instead of hanging.
     for (const [id, job] of jobs) {
       if (!ws.includes(job.worker)) continue
       jobs.delete(id)
-      job.reject(new Error('zarrita-rs: decode workers were terminated'))
+      job.reject(reason)
     }
   }).catch(() => {})
 }
