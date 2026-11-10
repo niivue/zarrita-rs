@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["packages/zarrita-wasm/crates/*"]
+members = ["packages/zarrita-wasm/crates/*", "apps/zarrita-compare/bench/rust"]
 
 [workspace.package]
 version = "0.1.0"

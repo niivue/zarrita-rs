@@ -1,0 +1,11 @@
+[package]
+name = "zarrita-bench"
+version = "0.0.0"
+edition.workspace = true
+publish = false
+
+[dependencies]
+zarrita = { workspace = true, features = ["fs", "parallel"] }
+tokio = { workspace = true, features = ["rt"] }
+serde_json.workspace = true
+bytes.workspace = true

@@ -1508,6 +1508,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "zarrita-bench"
+version = "0.0.0"
+dependencies = [
+ "bytes",
+ "serde_json",
+ "tokio",
+ "zarrita",
+]
+
+[[package]]
 name = "zarrita-storage"
 version = "0.1.0"
 dependencies = [
