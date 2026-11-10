@@ -58,5 +58,7 @@
     "url": "https://github.com/niivue/mono",
     "directory": "packages/zarrita-rs"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  }
 }
