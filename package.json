@@ -1,6 +1,6 @@
 {
   "name": "@niivue/zarrita-rs",
-  "version": "0.7.5-rc.0",
+  "version": "0.7.5-rc.1",
   "description": "Drop-in replacement for zarrita.js with Rust/WebAssembly chunk decoding in Web Workers",
   "license": "MIT",
   "type": "module",
