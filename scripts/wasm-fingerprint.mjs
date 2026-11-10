@@ -10,7 +10,7 @@ import { dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const pkg = join(dirname(fileURLToPath(import.meta.url)), '..')
-const root = join(pkg, '..', '..')
+const root = pkg
 const wasm = join(pkg, 'src/wasm/zarrita.wasm')
 const stampPath = `${wasm}.inputs`
 
@@ -46,7 +46,7 @@ if (mode === '--write') {
   if (committed !== stamp) {
     console.error(
       'zarrita-rs: src/wasm/zarrita.wasm is out of date with its Rust sources.\n' +
-        'Rebuild it with `bunx nx build:wasm zarrita-rs` and commit zarrita.wasm and zarrita.wasm.inputs.',
+        'Rebuild it with `bun run build:wasm` and commit zarrita.wasm and zarrita.wasm.inputs.',
     )
     process.exit(1)
   }

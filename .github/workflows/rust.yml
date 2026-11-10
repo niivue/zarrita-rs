@@ -1,29 +1,15 @@
 name: Rust
 
-# zarrita-rs's Rust crates: fmt, clippy and tests, then a wasm build from
-# source with the JavaScript tests run against it. The committed zarrita.wasm
-# is not byte-reproducible across build hosts, so it is not diffed here; the
-# PR gate's lint target checks its source fingerprint instead
-# (packages/zarrita-rs/scripts/wasm-fingerprint.mjs).
+# Biome, the wasm fingerprint and the typecheck; the Rust crates' fmt, clippy
+# and tests; then a wasm build from source with the JavaScript tests run
+# against it. The committed zarrita.wasm is not byte-reproducible across build
+# hosts, so it is not diffed here; `bun run lint` checks its source fingerprint
+# instead (scripts/wasm-fingerprint.mjs).
 
 on:
   push:
     branches: [main]
-    paths:
-      - Cargo.toml
-      - Cargo.lock
-      - rust-toolchain.toml
-      - packages/zarrita-rs/**
-      - apps/zarrita-compare/bench/rust/**
-      - .github/workflows/rust.yml
   pull_request:
-    paths:
-      - Cargo.toml
-      - Cargo.lock
-      - rust-toolchain.toml
-      - packages/zarrita-rs/**
-      - apps/zarrita-compare/bench/rust/**
-      - .github/workflows/rust.yml
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,7 +24,6 @@ jobs:
     # Pinned: apt.llvm.org has no LLVM 20 repository for Ubuntu 26.04.
     runs-on: ubuntu-24.04
     env:
-      NX_DAEMON: "false"
       # zstd's C sources need a clang that targets wasm32.
       CC_wasm32_unknown_unknown: clang-20
       AR_wasm32_unknown_unknown: llvm-ar-20
@@ -58,14 +43,20 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - name: Lint and wasm fingerprint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
       - name: Rust fmt and clippy
-        run: bunx nx run zarrita-rs:lint:rust --skip-nx-cache
+        run: bun run lint:rust
 
       - name: Rust tests
-        run: bunx nx run zarrita-rs:test:rust --skip-nx-cache
+        run: bun run test:rust
 
       - name: Build the wasm module from source
-        run: bunx nx run zarrita-rs:build:wasm --skip-nx-cache
+        run: bun run build:wasm
 
       - name: JavaScript tests against the fresh build
-        run: bunx nx run zarrita-rs:test --skip-nx-cache
+        run: bun run test

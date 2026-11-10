@@ -91,12 +91,12 @@ describe('defineStoreExtension', () => {
     )
     const store = withB(withA(new zarr.FetchStore(''), { a: 1 }), { b: 'x' })
     expectType(store).toMatchInlineSnapshot(`
-			Required<AsyncReadable> & {
-				url: string | URL;
-				methodB: () => string;
-				methodA: () => number;
-			}
-		`)
+      Required<AsyncReadable> & {
+      	url: string | URL;
+      	methodA: () => number;
+      	methodB: () => string;
+      }
+    `)
   })
   test('function called in extension definition is only called once', async () => {
     const someInitializerFunction = vi.fn()

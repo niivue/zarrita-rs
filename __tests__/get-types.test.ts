@@ -116,16 +116,16 @@ describe('Chunk type per union dtype', () => {
     expectType(chunk).toMatchInlineSnapshot(`zarr.Chunk<zarr.NumberDataType>`)
     expectType(chunk.data).toMatchInlineSnapshot(
       `
-			| Int8Array<ArrayBufferLike>
-				| Int16Array<ArrayBufferLike>
-				| Int32Array<ArrayBufferLike>
-				| Uint8Array<ArrayBufferLike>
-				| Uint16Array<ArrayBufferLike>
-				| Uint32Array<ArrayBufferLike>
-				| Float16Array<ArrayBuffer>
-				| Float32Array<ArrayBufferLike>
-				| Float64Array<ArrayBufferLike>
-		`,
+      | Float16Array<ArrayBuffer>
+      	| Float32Array<ArrayBufferLike>
+      	| Float64Array<ArrayBufferLike>
+      	| Int16Array<ArrayBufferLike>
+      	| Int32Array<ArrayBufferLike>
+      	| Int8Array<ArrayBufferLike>
+      	| Uint16Array<ArrayBufferLike>
+      	| Uint32Array<ArrayBufferLike>
+      	| Uint8Array<ArrayBufferLike>
+    `,
     )
   })
 
@@ -145,10 +145,10 @@ describe('Chunk type per union dtype', () => {
     expectType(chunk).toMatchInlineSnapshot(`zarr.Chunk<zarr.StringDataType>`)
     expectType(chunk.data).toMatchInlineSnapshot(
       `
-			| string[]
-				| zarr.UnicodeStringArray<ArrayBufferLike>
-				| zarr.ByteStringArray<ArrayBufferLike>
-		`,
+      | string[]
+      	| zarr.ByteStringArray<ArrayBufferLike>
+      	| zarr.UnicodeStringArray<ArrayBufferLike>
+    `,
     )
   })
 
@@ -157,23 +157,23 @@ describe('Chunk type per union dtype', () => {
     expectType(chunk).toMatchInlineSnapshot(`zarr.Chunk<zarr.DataType>`)
     expectType(chunk.data).toMatchInlineSnapshot(
       `
-			| string[]
-				| Int8Array<ArrayBufferLike>
-				| Int16Array<ArrayBufferLike>
-				| Int32Array<ArrayBufferLike>
-				| BigInt64Array<ArrayBufferLike>
-				| Uint8Array<ArrayBufferLike>
-				| Uint16Array<ArrayBufferLike>
-				| Uint32Array<ArrayBufferLike>
-				| BigUint64Array<ArrayBufferLike>
-				| Float16Array<ArrayBuffer>
-				| Float32Array<ArrayBufferLike>
-				| Float64Array<ArrayBufferLike>
-				| zarr.BoolArray<ArrayBufferLike>
-				| zarr.UnicodeStringArray<ArrayBufferLike>
-				| zarr.ByteStringArray<ArrayBufferLike>
-				| unknown[]
-		`,
+      | unknown[]
+      	| string[]
+      	| BigInt64Array<ArrayBufferLike>
+      	| BigUint64Array<ArrayBufferLike>
+      	| zarr.BoolArray<ArrayBufferLike>
+      	| zarr.ByteStringArray<ArrayBufferLike>
+      	| Float16Array<ArrayBuffer>
+      	| Float32Array<ArrayBufferLike>
+      	| Float64Array<ArrayBufferLike>
+      	| Int16Array<ArrayBufferLike>
+      	| Int32Array<ArrayBufferLike>
+      	| Int8Array<ArrayBufferLike>
+      	| Uint16Array<ArrayBufferLike>
+      	| Uint32Array<ArrayBufferLike>
+      	| Uint8Array<ArrayBufferLike>
+      	| zarr.UnicodeStringArray<ArrayBufferLike>
+    `,
     )
   })
 })

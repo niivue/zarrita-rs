@@ -1,0 +1,70 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "files": {
+    "ignoreUnknown": false,
+    "includes": ["**", "!fixtures", "!dist", "!target"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noNonNullAssertion": "error",
+        "noDescendingSpecificity": "off",
+        "useImportType": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noDoubleEquals": "error"
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
+      },
+      "performance": {
+        "noBarrelFile": "error"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noShadowRestrictedNames": "off"
+          }
+        }
+      },
+      "includes": ["**"]
+    },
+    {
+      "includes": ["src/index.ts", "src/indexing/index.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
+  ]
+}

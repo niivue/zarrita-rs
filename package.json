@@ -26,8 +26,12 @@
   "scripts": {
     "build:wasm": "sh scripts/build-wasm.sh",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/wasm/assets.js src/wasm/assets.d.ts src/wasm/core.js src/wasm/core.d.ts src/wasm/copy.js src/wasm/copy.d.ts src/wasm/zarrita.wasm dist/wasm/ && bunx esbuild src/wasm/worker.js --bundle --format=esm --platform=neutral --outfile=dist/wasm/worker.js --log-level=warning && node scripts/build-inline.mjs",
-    "test": "vitest run",
-    "test:dist": "node scripts/check-dist.mjs"
+    "test": "vitest run && node scripts/check-dist.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check . && node scripts/wasm-fingerprint.mjs --check",
+    "format": "biome format . --write",
+    "test:rust": "cargo test -p zarrita -p zarrita-storage -p zarrita-rs",
+    "lint:rust": "cargo fmt --check -p zarrita -p zarrita-storage -p zarrita-rs && cargo clippy -p zarrita -p zarrita-storage -p zarrita-rs -- -D warnings"
   },
   "dependencies": {
     "@zarrita/storage": "^0.2.0",
@@ -43,7 +47,8 @@
     "ndarray-ops": "^1.2.2",
     "tintype": "^0.2.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "@biomejs/biome": "2.4.10"
   },
   "keywords": [
     "zarr",
@@ -55,8 +60,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/niivue/mono",
-    "directory": "packages/zarrita-rs"
+    "url": "https://github.com/niivue/zarrita-rs"
   },
   "publishConfig": {
     "access": "public"

@@ -1,4 +1,4 @@
-# Pinned so CI rebuilds packages/zarrita-rs/src/wasm/zarrita.wasm byte for byte.
+# Pinned so CI rebuilds src/wasm/zarrita.wasm byte for byte.
 [toolchain]
 channel = "1.99.0"
 targets = ["wasm32-unknown-unknown"]

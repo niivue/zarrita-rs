@@ -98,11 +98,11 @@ lazily imported chunk, about 220 KB gzip), there is no worker pool, the code
 never refers to its own URL, and there is no numcodecs fallback. blosc and zstd
 stages that cannot take the whole-pipeline fast path (compressed string arrays,
 sharding indexes) still decode in wasm; writing blosc/zstd and standalone lz4
-are not available. `bunx nx test zarrita-rs` checks both built entries against zarrita.js.
+are not available. `bun run test` checks both built entries against zarrita.js.
 
 ## Install
 
-Release candidates are published from niivue/mono under the `next` dist-tag:
+Release candidates are published under the `next` dist-tag:
 
 ```sh
 npm install @niivue/zarrita-rs@next
@@ -128,20 +128,20 @@ and `wasmUrl` to `configureWasm`.
 
 ## Building
 
-From the repository root:
-
 ```sh
 bun install
-bunx nx build:wasm zarrita-rs  # needs the wasm32-unknown-unknown Rust target and clang (for zstd)
-bunx nx build zarrita-rs       # packages the committed src/wasm/zarrita.wasm
-bunx nx test zarrita-rs        # zarrita.js's own test suite, wasm-path tests, built-entry check
-bunx nx test:rust zarrita-rs
-bunx nx lint:rust zarrita-rs
+bun run build:wasm  # needs the wasm32-unknown-unknown Rust target and clang (for zstd)
+bun run build       # packages the committed src/wasm/zarrita.wasm
+bun run test        # zarrita.js's own test suite, wasm-path tests, built-entry check
+bun run lint        # Biome and the wasm fingerprint
+bun run typecheck
+bun run test:rust
+bun run lint:rust
 ```
 
 `src/wasm/zarrita.wasm` is committed, so the JavaScript build needs no Rust
 toolchain. `build:wasm` also writes `src/wasm/zarrita.wasm.inputs`, a fingerprint
-of the Rust sources and the wasm; commit both files together. The `lint` target
+of the Rust sources and the wasm; commit both files together. `bun run lint`
 fails when the Rust sources changed without a rebuild. The wasm is not
 byte-identical across build hosts, so CI (`.github/workflows/rust.yml`) builds it
 from source and runs the tests against that build rather than diffing it.
@@ -166,11 +166,12 @@ from source and runs the tests against that build rather than diffing it.
 
 ## Trying it on your own data
 
-The `apps/zarrita-compare` app has a page that reads any CORS-enabled Zarr URL
-with zarrita.js, zarrita-rs and zarrita-rs with shared output, plus a Node and
-native Rust benchmark (see its README):
+The `zarrita-compare` app in [niivue/mono](https://github.com/niivue/mono)
+(`apps/zarrita-compare`) has a page that reads any CORS-enabled Zarr URL with
+zarrita.js, zarrita-rs and zarrita-rs with shared output, plus a Node
+benchmark. The native Rust benchmark lives here in `bench/`:
 
 ```sh
-bunx nx dev zarrita-compare
-# open http://localhost:8093/
+cargo run --release -p zarrita-bench -- gen <dir>      # write the test stores
+cargo run --release -p zarrita-bench -- run <dir> [iters]
 ```
