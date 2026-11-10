@@ -1,4 +1,4 @@
-// `@niivue/zarrita-rs/inline`: no numcodecs. When a blosc or zstd stage cannot go
+// `@niivue/zarrita-rs/inline`: no numcodecs. When a blosc, zstd or lz4 stage cannot go
 // through the wasm fast path as a whole pipeline (for example compressed
 // string arrays, whose vlen-utf8 stage runs in JS), these entries decode just
 // that byte stage in wasm. Writing these codecs needs the main entry.
@@ -31,14 +31,6 @@ function wasmBytesCodec(name) {
   })
 }
 
-function unavailable(name) {
-  return async () => {
-    throw new UnsupportedError(
-      `${name} codec (not in @niivue/zarrita-rs/inline)`,
-    )
-  }
-}
-
 export const blosc = wasmBytesCodec('blosc')
 export const zstd = wasmBytesCodec('zstd')
-export const lz4 = unavailable('lz4')
+export const lz4 = wasmBytesCodec('lz4')

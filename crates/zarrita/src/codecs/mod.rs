@@ -3,10 +3,9 @@
 //! Chunks travel through the pipeline as raw bytes plus shape/stride
 //! ([`RawChunk`]); typed views are only created at the very end, by `get`.
 //!
-//! Ported: `bytes`, `transpose`, `gzip`, `zlib`, `zstd`, `crc32c`, `blosc`
-//! (c-blosc via `blosc-src`), `shuffle`, `delta`, `numcodecs.pcodec`, and
-//! `sharding_indexed` (see `crate::sharding`).
-//! Not supported on purpose: the standalone numcodecs `lz4` codec.
+//! Ported: `bytes`, `transpose`, `gzip`, `zlib`, `zstd`, `lz4`, `crc32c`,
+//! `blosc` (c-blosc via `blosc-src`), `shuffle`, `delta`, `numcodecs.pcodec`,
+//! and `sharding_indexed` (see `crate::sharding`).
 //! TODO: `vlen-utf8`, `json2`, `bitround`, `scale_offset`,
 //! `cast_value`.
 
@@ -29,7 +28,7 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, RwLock};
 
 pub use bytes_codec::BytesCodec;
-pub use compress::{GzipCodec, ZlibCodec, ZstdCodec};
+pub use compress::{GzipCodec, Lz4Codec, ZlibCodec, ZstdCodec};
 pub use crc32c_codec::Crc32cCodec;
 pub use numcodecs::{BloscCodec, DeltaCodec, ShuffleCodec};
 #[cfg(feature = "pcodec")]
@@ -105,6 +104,11 @@ static REGISTRY: LazyLock<RwLock<HashMap<String, CodecFactory>>> = LazyLock::new
     for name in ["zstd", "numcodecs.zstd"] {
         m.insert(name.into(), |c, _| {
             Ok(Codec::BytesToBytes(Box::new(ZstdCodec::from_config(c))))
+        });
+    }
+    for name in ["lz4", "numcodecs.lz4"] {
+        m.insert(name.into(), |_, _| {
+            Ok(Codec::BytesToBytes(Box::new(Lz4Codec)))
         });
     }
     for name in ["blosc", "numcodecs.blosc"] {
