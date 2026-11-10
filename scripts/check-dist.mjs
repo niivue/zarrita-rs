@@ -7,12 +7,13 @@ import FileSystemStore from '@zarrita/storage/fs'
 
 const full = await import('../dist/index.js')
 const inline = await import('../dist/inline/index.js')
-const root = new URL('../fixtures/v3/data.zarr/', import.meta.url).pathname
+const fixtures = (v) =>
+  new URL(`../fixtures/${v}/data.zarr/`, import.meta.url).pathname
 
-async function read(zarr, name) {
+async function read(zarr, [v, name]) {
   try {
-    const arr = await zarr.open.v3(
-      zarr.root(new FileSystemStore(root)).resolve(name),
+    const arr = await zarr.open[v](
+      zarr.root(new FileSystemStore(fixtures(v))).resolve(name),
       { kind: 'array' },
     )
     const r = await zarr.get(arr)
@@ -26,18 +27,18 @@ async function read(zarr, name) {
   }
 }
 
-const names = readdirSync(root, { withFileTypes: true })
-  .filter((d) => d.isDirectory())
-  .map((d) => d.name)
+const names = ['v2', 'v3'].flatMap((v) =>
+  readdirSync(fixtures(v), { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => [v, d.name]),
+)
 const failures = []
 full.configureWasm({ enabled: false })
-const reference = Object.fromEntries(
-  await Promise.all(names.map(async (n) => [n, await read(full, n)])),
-)
+const reference = await Promise.all(names.map((n) => read(full, n)))
 full.configureWasm({ enabled: true, gzip: 'wasm' })
 inline.configureWasm({ gzip: 'wasm' })
-for (const n of names) {
-  const want = reference[n]
+for (const [i, n] of names.entries()) {
+  const want = reference[i]
   for (const [label, lib] of [
     ['full', full],
     ['inline', inline],
@@ -45,21 +46,15 @@ for (const n of names) {
     const got = await read(lib, n)
     if (got !== want)
       failures.push(
-        `${label} ${n}: ${got.slice(0, 80)} != ${want.slice(0, 80)}`,
+        `${label} ${n.join('/')}: ${got.slice(0, 80)} != ${want.slice(0, 80)}`,
       )
   }
 }
-// Expected differences in the inline entry: no standalone lz4 (no fallback).
-const unexpected = failures.filter((f) => !/^inline .*lz4/.test(f))
-const expected = failures.length - unexpected.length
 full.terminateWasmWorkers()
-if (unexpected.length) {
-  console.error(unexpected.join('\n'))
+if (failures.length) {
+  console.error(failures.join('\n'))
   process.exit(1)
 }
 console.log(
-  `check-dist: ${names.length} v3 fixtures match zarrita.js in dist/ and dist/inline/` +
-    (expected
-      ? ` (inline: ${expected} standalone-lz4 array unsupported, as intended)`
-      : ''),
+  `check-dist: ${names.length} v2/v3 fixtures match zarrita.js in dist/ and dist/inline/`,
 )

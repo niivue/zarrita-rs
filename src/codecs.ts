@@ -105,6 +105,8 @@ const WASM_CODECS = new Set([
   'numcodecs.zlib',
   'zstd',
   'numcodecs.zstd',
+  'lz4',
+  'numcodecs.lz4',
   'blosc',
   'numcodecs.blosc',
 ])
@@ -115,6 +117,8 @@ const WASM_COMPRESSORS = new Set([
   'numcodecs.zlib',
   'zstd',
   'numcodecs.zstd',
+  'lz4',
+  'numcodecs.lz4',
   'blosc',
   'numcodecs.blosc',
 ])

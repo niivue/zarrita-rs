@@ -1,6 +1,5 @@
-//! numcodecs-compatible codecs: `blosc`, `shuffle`, `delta`.
-//! The standalone numcodecs `lz4` codec is intentionally not supported (a
-//! legacy format); blosc's internal lz4 compressor is.
+//! numcodecs-compatible codecs: `blosc`, `shuffle`, `delta` (`lz4` lives
+//! with the other compressors in `compress.rs`).
 //! zarrita.js loads blosc from numcodecs' wasm build of c-blosc;
 //! here blosc links the same C library natively.
 

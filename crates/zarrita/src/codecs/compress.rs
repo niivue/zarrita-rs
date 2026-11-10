@@ -1,5 +1,5 @@
-//! gzip / zlib / zstd byte codecs (ports of `codecs/gzip.ts`, `codecs/zlib.ts`;
-//! TS uses numcodecs' wasm build for zstd).
+//! gzip / zlib / zstd / lz4 byte codecs (ports of `codecs/gzip.ts`,
+//! `codecs/zlib.ts`; TS uses numcodecs' wasm builds for zstd and lz4).
 
 // Compression levels are only read when encoding.
 #![cfg_attr(not(feature = "encode"), allow(dead_code))]
@@ -116,6 +116,37 @@ impl BytesToBytesCodec for ZstdCodec {
     }
 }
 
+/// numcodecs `lz4`: a little-endian u32 decoded size, then one LZ4 block.
+pub struct Lz4Codec;
+impl BytesToBytesCodec for Lz4Codec {
+    #[cfg(feature = "encode")]
+    fn encode(&self, b: Bytes) -> Result<Bytes> {
+        Ok(lz4_flex::block::compress_prepend_size(&b).into())
+    }
+    #[cfg(not(feature = "encode"))]
+    fn encode(&self, _b: Bytes) -> Result<Bytes> {
+        Err(Error::Unsupported(
+            "encoding requires the `encode` feature".into(),
+        ))
+    }
+    fn decode(&self, b: Bytes) -> Result<Bytes> {
+        let (head, block) = b
+            .split_first_chunk::<4>()
+            .ok_or_else(|| other("lz4: missing size header"))?;
+        let n = u32::from_le_bytes(*head) as usize;
+        // LZ4 expands at most ~255x, so a larger header is damage; checking it
+        // stops a corrupt chunk from forcing a multi-GB allocation.
+        if n > block.len().saturating_mul(255) {
+            return Err(other("lz4: size header exceeds block"));
+        }
+        let out = lz4_flex::block::decompress(block, n).map_err(other)?;
+        if out.len() != n {
+            return Err(other("lz4: decoded size mismatch"));
+        }
+        Ok(out.into())
+    }
+}
+
 #[cfg(all(test, feature = "encode"))]
 mod tests {
     use super::*;
@@ -134,6 +165,7 @@ mod tests {
             Box::new(GzipCodec::from_config(&cfg)),
             Box::new(ZlibCodec::from_config(&cfg)),
             Box::new(ZstdCodec::from_config(&cfg)),
+            Box::new(Lz4Codec),
         ];
         for c in codecs {
             let mut enc = c.encode(raw.clone()).unwrap().to_vec();

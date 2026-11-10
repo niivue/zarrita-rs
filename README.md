@@ -54,7 +54,7 @@ Measured with esbuild code splitting (as Vite/webpack apps get), gzip -9:
 | Library core | 14.5 KB | 18 KB |
 | Reading blosc data | + 204 KB (numcodecs blosc) | + 166 KB (`zarrita.wasm`, all codecs) |
 | Reading zstd data | + 241 KB (numcodecs zstd) | + 166 KB |
-| Reading standalone-lz4 data (legacy) | + 16 KB | + 16 KB (zarrita.js decoder) |
+| Reading standalone-lz4 data (legacy) | + 16 KB | + 166 KB (`zarrita.wasm`, shared) |
 | Reading gzip/zlib data | + 0 (browser built-in) | + 0 by default (see `gzip` option) |
 | Uncompressed data | + 0 | + 0 (wasm is not loaded) |
 
@@ -97,8 +97,8 @@ Same API, but the wasm module is embedded in the JavaScript as base64 (in a
 lazily imported chunk, about 220 KB gzip), there is no worker pool, the code
 never refers to its own URL, and there is no numcodecs fallback. blosc and zstd
 stages that cannot take the whole-pipeline fast path (compressed string arrays,
-sharding indexes) still decode in wasm; writing blosc/zstd and standalone lz4
-are not available. `bun run test` checks both built entries against zarrita.js.
+sharding indexes) still decode in wasm; writing blosc/zstd/lz4 is not
+available. `bun run test` checks both built entries against zarrita.js.
 
 ## Install
 
@@ -152,9 +152,8 @@ from source and runs the tests against that build rather than diffing it.
 - Every fixture array, plus about 300 random slice/step/integer selections,
   reads identically to zarrita.js in all modes (main thread, workers, shared
   output on main thread and in workers).
-- The standalone numcodecs `lz4` codec is deliberately not in the wasm core
-  (a legacy format); such arrays still read through zarrita.js's own decoder,
-  so the drop-in API is unchanged. Blosc's internal lz4 is fully supported.
+- The standalone numcodecs `lz4` codec decodes in wasm (lz4_flex), as does
+  blosc's internal lz4.
 - Sharded arrays: inner chunks decode in wasm and, with shared output, are
   written straight into the result. On a 256^3 int16 volume in 128^3 shards
   of 32^3 blosc-zstd-bitshuffle chunks (Node, in memory, 2 cores), a full
