@@ -26,7 +26,7 @@
   "scripts": {
     "build:wasm": "sh scripts/build-wasm.sh",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/wasm/assets.js src/wasm/assets.d.ts src/wasm/core.js src/wasm/core.d.ts src/wasm/copy.js src/wasm/copy.d.ts src/wasm/zarrita.wasm dist/wasm/ && bunx esbuild src/wasm/worker.js --bundle --format=esm --platform=neutral --outfile=dist/wasm/worker.js --log-level=warning && node scripts/build-inline.mjs",
-    "test": "vitest run && node scripts/check-dist.mjs",
+    "test": "vitest run && bun run build && node scripts/check-dist.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check . && node scripts/wasm-fingerprint.mjs --check",
     "format": "biome format . --write",
