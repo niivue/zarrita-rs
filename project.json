@@ -1,0 +1,63 @@
+{
+  "name": "zarrita-rs",
+  "projectType": "library",
+  "tags": ["type:lib", "lang:typescript"],
+  "targets": {
+    "build:wasm": {
+      "command": "bun run build:wasm",
+      "options": { "cwd": "{projectRoot}" },
+      "inputs": [
+        "{workspaceRoot}/Cargo.toml",
+        "{workspaceRoot}/Cargo.lock",
+        "{projectRoot}/crates/**/*"
+      ],
+      "outputs": ["{projectRoot}/src/wasm/zarrita.wasm"]
+    },
+    "build": {
+      "command": "bun run build",
+      "options": { "cwd": "{projectRoot}" },
+      "inputs": [
+        "typescript",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/scripts/**/*"
+      ],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "command": "bunx vitest run && bun run test:dist",
+      "options": { "cwd": "{projectRoot}" },
+      "dependsOn": ["build"],
+      "inputs": [
+        "typescript",
+        "{projectRoot}/__tests__/**/*",
+        "{projectRoot}/fixtures/**/*"
+      ]
+    },
+    "test:rust": {
+      "command": "cargo test -p zarrita -p zarrita-storage -p zarrita-wasm",
+      "inputs": [
+        "{workspaceRoot}/Cargo.toml",
+        "{workspaceRoot}/Cargo.lock",
+        "{projectRoot}/crates/**/*",
+        "{projectRoot}/fixtures/**/*"
+      ]
+    },
+    "lint:rust": {
+      "command": "cargo fmt --check -p zarrita -p zarrita-storage -p zarrita-wasm && cargo clippy -p zarrita -p zarrita-storage -p zarrita-wasm -- -D warnings",
+      "inputs": ["{workspaceRoot}/Cargo.toml", "{projectRoot}/crates/**/*"]
+    },
+    "typecheck": {
+      "command": "bunx tsc --noEmit",
+      "options": { "cwd": "{projectRoot}" },
+      "inputs": ["typescript"]
+    },
+    "lint": {
+      "command": "bunx biome check {projectRoot}",
+      "inputs": ["lintable"]
+    },
+    "format": {
+      "command": "bunx biome format {projectRoot} --write",
+      "inputs": ["lintable"]
+    }
+  }
+}

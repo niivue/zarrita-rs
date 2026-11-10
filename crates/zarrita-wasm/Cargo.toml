@@ -1,0 +1,20 @@
+[package]
+name = "zarrita-wasm"
+description = "WebAssembly decode core for the zarrita-rs npm package"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+# Not in the npm package for now (the JS side has no pcodec entry).
+pcodec = ["zarrita/pcodec"]
+
+[dependencies]
+zarrita = { path = "../zarrita", default-features = false }
+serde_json.workspace = true
+bytes.workspace = true

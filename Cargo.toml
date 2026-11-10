@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["packages/zarrita-wasm/crates/*", "apps/zarrita-compare/bench/rust"]
+members = ["packages/zarrita-rs/crates/*", "apps/zarrita-compare/bench/rust"]
 
 [workspace.package]
 version = "0.1.0"
@@ -10,8 +10,8 @@ repository = "https://github.com/niivue/mono"
 rust-version = "1.87"
 
 [workspace.dependencies]
-zarrita-storage = { path = "packages/zarrita-wasm/crates/zarrita-storage", default-features = false }
-zarrita = { path = "packages/zarrita-wasm/crates/zarrita" }
+zarrita-storage = { path = "packages/zarrita-rs/crates/zarrita-storage", default-features = false }
+zarrita = { path = "packages/zarrita-rs/crates/zarrita" }
 bytes = "1"
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }
