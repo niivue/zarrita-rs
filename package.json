@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "build:wasm": "cd ../.. && RUSTFLAGS=\"-C target-feature=+simd128,+bulk-memory\" CFLAGS_wasm32_unknown_unknown=\"-msimd128 -mbulk-memory -O3\" cargo build -p zarrita-rs --target wasm32-unknown-unknown --profile wasm && cp target/wasm32-unknown-unknown/wasm/zarrita_rs.wasm packages/zarrita-rs/src/wasm/zarrita.wasm",
+    "build:wasm": "sh scripts/build-wasm.sh",
     "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/wasm/assets.js src/wasm/assets.d.ts src/wasm/core.js src/wasm/core.d.ts src/wasm/copy.js src/wasm/copy.d.ts src/wasm/zarrita.wasm dist/wasm/ && bunx esbuild src/wasm/worker.js --bundle --format=esm --platform=neutral --outfile=dist/wasm/worker.js --log-level=warning && node scripts/build-inline.mjs",
     "test": "vitest run",
     "test:dist": "node scripts/check-dist.mjs"
