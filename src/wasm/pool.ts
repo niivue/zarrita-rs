@@ -215,7 +215,12 @@ async function spawn(
     bw.onmessage = (e) => onMessage(w, e.data)
     bw.onerror = fail
   }
-  w.port.postMessage({ type: 'init', module })
+  try {
+    w.port.postMessage({ type: 'init', module })
+  } catch (e) {
+    w.port.terminate() // getPool only terminates workers that spawned
+    throw e
+  }
   return w
 }
 

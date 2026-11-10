@@ -35,7 +35,8 @@ permissions:
 jobs:
   rust:
     name: Rust (zarrita-rs)
-    runs-on: ubuntu-latest
+    # Pinned: apt.llvm.org has no LLVM 20 repository for Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     env:
       NX_DAEMON: "false"
       # zstd's C sources need a clang that targets wasm32.

@@ -13,7 +13,8 @@
         "{workspaceRoot}/Cargo.lock",
         "{workspaceRoot}/rust-toolchain.toml",
         "{projectRoot}/crates/**/*",
-        "{projectRoot}/scripts/build-wasm.sh"
+        "{projectRoot}/scripts/build-wasm.sh",
+        "{projectRoot}/scripts/wasm-fingerprint.mjs"
       ],
       "outputs": [
         "{projectRoot}/src/wasm/zarrita.wasm",
@@ -79,6 +80,7 @@
         "{workspaceRoot}/rust-toolchain.toml",
         "{projectRoot}/crates/**/*",
         "{projectRoot}/scripts/build-wasm.sh",
+        "{projectRoot}/scripts/wasm-fingerprint.mjs",
         "{projectRoot}/src/wasm/zarrita.wasm",
         "{projectRoot}/src/wasm/zarrita.wasm.inputs"
       ]
