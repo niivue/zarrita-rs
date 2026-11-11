@@ -1,0 +1,16 @@
+{
+  "name": "zarrita-rs-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open /index.html",
+    "bench": "./run.sh"
+  },
+  "dependencies": {
+    "@zarrita/storage": "^0.2.0",
+    "zarrita": "0.7.5"
+  },
+  "devDependencies": {
+    "vite": "^8.0.9"
+  }
+}

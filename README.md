@@ -163,14 +163,35 @@ from source and runs the tests against that build rather than diffing it.
   cause says `corrupt chunk data`; only codec options the core lacks (such as
   blosc+snappy) fall back to the JS codecs.
 
-## Trying it on your own data
+## Comparing with zarrita.js
 
-The `zarrita-compare` app in [niivue/mono](https://github.com/niivue/mono)
-(`apps/zarrita-compare`) has a page that reads any CORS-enabled Zarr URL with
-zarrita.js, zarrita-rs and zarrita-rs with shared output, plus a Node
-benchmark. The native Rust benchmark lives here in `bench/`:
+`demo/` reads the same arrays with zarrita.js 0.7.5 and with this package's
+local build (`dist/`, so run `bun run build` first), and checks that the
+checksums match.
+
+```sh
+cd demo && bun install
+bun run dev     # browser page: any CORS-enabled Zarr URL
+bun run bench   # Node + native Rust on generated data (needs a Rust toolchain)
+```
+
+The page times zarrita.js, zarrita-rs and, because the dev server is
+cross-origin isolated, zarrita-rs with shared output. The benchmark's Rust side
+(`bench/`) writes a 256x256x256 int16 volume as Zarr v3 in five variants (raw,
+gzip, zstd, blosc-lz4 with 64^3 and 32^3 chunks), then times `open`, the full
+array, a 160^3 sub-volume and two orthogonal planes with zarrita.js (`js`),
+zarrita-rs (`js-wasm`) and the native crate single-threaded and with rayon
+(`rust`, `rust-par`), and prints one table with speedups over zarrita.js. To run
+the Rust side alone:
 
 ```sh
 cargo run --release -p zarrita-bench -- gen <dir>      # write the test stores
 cargo run --release -p zarrita-bench -- run <dir> [iters]
 ```
+
+On an Apple Silicon Mac (2026-11-10, 5 iterations) every checksum matched and
+zarrita-rs read 1.5-10.5x faster than zarrita.js on compressed data (gzip
+1.5-2.8x, zstd 6-8.6x, blosc-lz4 2.6-10.5x) and up to 9.4x faster on strided
+raw planes. Earlier runs in a 2 vCPU sandbox show that over a network with
+20 ms per request the two tie: request round trips dominate, not decoding.
+Rerun on your hardware before drawing conclusions.
